@@ -20,16 +20,35 @@ public class LoginPage extends BasePage {
     super(driver);
   }
 
-  public LoginPage(WebDriver driver, boolean openByURL) {
-    super(driver, openByURL);
+  public LoginPage(WebDriver driver, boolean openPageByUrl) {
+    super(driver);
+
+    if (openPageByUrl) {
+      openPage();
+    }
+
+    waitForOpen();
   }
 
-  @Override
-  protected void openPage() {
+  public void openPage() {
     driver.get(BASE_URL + ENDPOINT);
   }
 
-  @Override
+  protected void waitForOpen() {
+    int tryCount = 0;
+    boolean isPageOpenedIndicator = isPageOpened();
+
+    while (!isPageOpenedIndicator
+        && tryCount < (ReadProperties.getTimeOut())) {
+      tryCount++;
+      isPageOpenedIndicator = isPageOpened();
+    }
+
+    if (!isPageOpenedIndicator) {
+      throw new AssertionError("Page was not opened");
+    }
+  }
+
   protected boolean isPageOpened() {
     return waits.waitForVisibility(PAGE_OPENED_IDENTIFIER).isDisplayed();
   }
@@ -45,7 +64,6 @@ public class LoginPage extends BasePage {
   public Button getLoginButton() {
     return new Button(driver, loginSelector);
   }
-
 
   public void login(User user) {
     getEmailField().sendKeys(user.getEmail());
